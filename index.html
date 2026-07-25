@@ -24,49 +24,7 @@
             animation: slideIn 0.3s ease-out;
         }
         
-        /* 1. ปรับขนาดสวิตช์ On/Off ให้มินิมอลลง */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 38px;
-            height: 20px;
-        }
-        
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #475569;
-            transition: 0.3s;
-            border-radius: 20px;
-        }
-        
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 14px;
-            width: 14px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: 0.3s;
-            border-radius: 50%;
-        }
-        
-        input:checked + .toggle-slider {
-            background-color: #10b981;
-        }
-        
-        input:checked + .toggle-slider:before {
-            transform: translateX(18px);
-        }
-
+      
         /* 2. Effect ไฟกระพริบสีแดงวาบ ๆ เหมือนกระสือสำหรับไซเรน Emergency */
         @keyframes sirenGlow {
             0%, 100% {
@@ -92,8 +50,8 @@
     <div class="max-w-7xl mx-auto">
         <header class="flex justify-between items-center bg-slate-800 p-4 rounded-xl mb-6 shadow-md border border-slate-700">
             <div>
-                <h1 class="text-2xl font-bold text-emerald-400">Badminton Queue & Matchmaker</h1>
-                <p class="text-xs text-slate-400">ระบบจัดคิวและสุ่มคู่แบดมินตันอัจฉริยะ (เวอร์ชันปรับปรุงระบบสุ่ม & ลำดับคิว)</p>
+                <h1 class="text-2xl font-bold text-emerald-400">🏸 Badminton Queue & Matchmaker</h1>
+                <p class="text-xs text-slate-400">มีตรงไหนอยากให้แก้ไข ลิสต์บอกในกลุ่มได้เลยน้าาาาาาาา</p>
             </div>
     
             <button onclick="resetAllData()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-semibold transition">
@@ -108,36 +66,87 @@
                     <i class="fa-solid fa-users mr-2"></i>รายชื่อนักกีฬา (<span id="playerCount">0</span>)
                 </h2>
    
-                <div class="mb-4 flex flex-wrap gap-2">
-                    <div class="flex items-center gap-2">
-                        <input id="newPlayerName" type="text" placeholder="ชื่อผู้เล่น" class="bg-slate-900 text-slate-100 text-xs rounded px-2 py-1 border border-slate-700" />
-        
-                        <select id="newPlayerLevel" class="bg-slate-900 text-slate-100 text-xs rounded px-2 py-1 border border-slate-700">
-                            <option value="L2">L2 (ทั่วไป)</option>
-                            <option value="L1">L1 (ใหม่)</option>
-                            <option value="L3">L3 (แบก)</option>
-                        </select>
-                        <button onclick="addPlayerFromInput()" class="bg-blue-600 hover:bg-blue-700 text-xs px-3 py-1.5 rounded font-medium transition">
-                            <i class="fa-solid fa-user-plus mr-1"></i>เพิ่มสมาชิก
-                        </button>
-                    </div>
-                </div>
+	<!-- ฟอร์มเพิ่มสมาชิก -->
+		<div class="mb-4 flex items-center gap-2 w-full">
+    <input id="newPlayerName" type="text" placeholder="ชื่อผู้เล่น" class="w-28 h-9 bg-slate-900 text-slate-100 text-xs rounded-lg px-2.5 border border-slate-700 focus:outline-none focus:border-blue-500 transition" />
+    
+    <select id="newPlayerGender" class="h-9 bg-slate-900 text-slate-100 text-xs rounded-lg px-1.5 border border-slate-700 cursor-pointer focus:outline-none focus:border-blue-500 transition">
+        <option value="M">ชาย (M)</option>
+        <option value="W">หญิง (W)</option>
+    </select>
+    
+    <button onclick="addPlayerFromInput()" class="h-9 whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 rounded-lg font-medium transition flex items-center gap-1">
+        <i class="fa-solid fa-user-plus"></i> เพิ่มสมาชิก
+    </button>
+</div>
 
+		<!-- Modal เลือกรูปแบบแมตช์เมื่อเกิดข้อจำกัด (Match Options Modal) -->
+	<div id="matchChoiceModal" class="fixed inset-0 bg-black/75 hidden items-center justify-center z-50 p-4">
+    			<div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-xl p-5 shadow-2xl">
+     	   <div class="flex justify-between items-center border-b border-slate-700 pb-2 mb-3">
+            <h3 class="text-lg font-bold text-amber-400">
+                <i class="fa-solid fa-code-branch mr-2"></i>พบทางเลือกการจัดคิวเนื่องจากติดเงื่อนไข
+            </h3>
+            <button onclick="closeModal('matchChoiceModal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        
+        <p class="text-xs text-slate-300 mb-4">
+            ระบบพบว่าผู้เล่นกลุ่มนี้มีข้อจำกัดเรื่องเพศหรือการคู่ซ้ำ กรุณาเลือกรูปแบบที่ต้องการจัดลงสนาม:
+        </p>
+
+        <div id="matchOptionsContainer" class="flex flex-col gap-3 max-h-[350px] overflow-y-auto mb-4">
+            <!-- ตัวเลือกจะถูกสร้างด้วย JS ที่นี่ -->
+        </div>
+
+        <button onclick="closeModal('matchChoiceModal')" class="w-full bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-sm font-semibold text-slate-300 transition">
+            ยกเลิกการสุ่มรอบนี้
+        </button>
+    </div>
+</div>
+
+	
                 <div class="max-h-[350px] overflow-y-auto mb-4 border border-slate-700 rounded-lg bg-slate-900 p-2">
                     <table class="w-full text-sm text-left">
                         <thead>
                             <tr class="text-slate-400 border-b border-slate-700">
-                                <th class="pb-2">ชื่อ</th>
-                                <th class="pb-2">ระดับมือ</th>
-                                <th class="pb-2 text-center">สถานะ</th>
+                                <th class="pb-2">Player</th>
+                                <th class="pb-2">Gender</th>
+                                <th class="pb-2 text-center">Status</th>
                             </tr>
                         </thead>
                         <tbody id="playerInputList"></tbody>
                     </table>
                     <p class="text-xs text-slate-400 mt-2">หมายเหตุ: ผู้เล่นที่ถูกสุ่มเป็นคิวหรืออยู่ในสนามจะถูกลบจากรายชื่อเพื่อหลีกเลี่ยงการถูกเลือกซ้ำ</p>
                 </div>
+<div class="flex items-center justify-between mb-2 mt-4">
+    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-1.5">
+        <i class="fa-solid fa-chart-simple"></i> สถิติจำนวนเกมรายบุคคล
+    </h3>
+    
+    <div>
+        <!-- ปุ่มสัญลักษณ์แก้ไข (โหมดปกติ) -->
+        <button id="btn-edit-games-start" onclick="toggleEditGamesMode(true)" 
+                class="w-7 h-7 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg transition-all flex items-center justify-center"
+                title="แก้ไขจำนวนเกม">
+            <i class="fa-solid fa-pen-to-square text-xs"></i>
+        </button>
 
-                <h3 class="text-sm font-bold text-slate-300 mb-2 mt-4"><i class="fa-solid fa-chart-simple mr-2"></i>สถิติจำนวนเกมรายบุคคล</h3>
+        <!-- ปุ่มสัญลักษณ์ ✔️ และ ⛔ (โหมดกำลังแก้ไข) -->
+        <div id="edit-games-actions" class="hidden flex items-center gap-1.5">
+            <button onclick="saveAllGamesPlayed()" 
+                    class="w-7 h-7 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow transition-all flex items-center justify-center"
+                    title="บันทึก">
+                <i class="fa-solid fa-check text-xs"></i>
+            </button>
+            <button onclick="toggleEditGamesMode(false)" 
+                    class="w-7 h-7 bg-rose-900/60 hover:bg-rose-800 text-rose-200 border border-rose-700/80 rounded-lg transition-all flex items-center justify-center"
+                    title="ยกเลิก">
+                <i class="fa-solid fa-ban text-xs"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
                 <div class="max-h-[250px] overflow-y-auto border border-slate-700 rounded-lg bg-slate-900 p-2 text-xs">
                    <div id="statsSummary" class="divide-y divide-slate-800"></div>
                 </div>
@@ -146,12 +155,24 @@
             <div class="lg:col-span-2 flex flex-col gap-6">
                 
                 <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-bold text-slate-200"><i class="fa-solid fa-clock-rotate-left mr-2"></i>กลุ่มคิวที่กำลังรอเล่น (Queue)</h2>
-                        <button onclick="matchmake()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm shadow transition">
-                            <i class="fa-solid fa-robot mr-2"></i>สุ่มจัดคิวอัตโนมัติ
-                        </button>
-                    </div>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
+    <h2 class="text-lg font-bold text-slate-200"><i class="fa-solid fa-clock-rotate-left mr-2"></i>กลุ่มคิวที่กำลังรอเล่น (Queue)</h2>
+    <div class="flex gap-2">
+	
+	<!-- 🌟 ปุ่ม "รอ" เพิ่มใหม่ตรงนี้ -->
+        <button id="btnQueuePause" onclick="toggleQueuePause()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold px-3 py-2 rounded-lg text-sm shadow transition flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-play"></i> รอ: OFF
+        </button>
+
+        <button onclick="matchmakeFriendzone()" class="bg-pink-600 hover:bg-pink-700 text-white font-bold px-4 py-2 rounded-lg text-sm shadow transition">
+            🍒 Friendzone
+        </button>
+        <button onclick="matchmake()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm shadow transition">
+            <i class="fa-solid fa-robot mr-2"></i>สุ่มจัดคิวอัตโนมัติ
+        </button>
+    </div>
+</div>
+
 
                     <div class="bg-slate-900 border border-slate-700 rounded-lg p-3 min-h-[80px]">
                         <div id="queueContainer" class="flex flex-col gap-2">
@@ -176,7 +197,7 @@
         </div>
     </div>
 
-    <div id="historyModal" class="fixed inset-0 bg-black/75 hidden items-center justify-center z-50 p-4">
+   		 <div id="historyModal" class="fixed inset-0 bg-black/75 hidden items-center justify-center z-50 p-4">
         <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-xl p-5 shadow-2xl">
             <div class="flex justify-between items-center border-b border-slate-700 pb-2 mb-4">
                 <h3 id="historyModalTitle" class="text-lg font-bold text-emerald-400">ประวัติการเล่น</h3>
@@ -186,19 +207,19 @@
         </div>
     </div>
 
-    <div id="closeCourtModal" class="fixed inset-0 bg-black/75 hidden items-center justify-center z-50 p-4">
+  		  <div id="closeCourtModal" class="fixed inset-0 bg-black/75 hidden items-center justify-center z-50 p-4">
          <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-xl p-5 shadow-2xl text-center">
             <h3 class="text-lg font-bold text-rose-400 mb-4"><i class="fa-solid fa-circle-stop mr-2"></i>เลือกรูปแบบการปิดคอร์ด</h3>
             <p class="text-sm text-slate-400 mb-6">กรุณาระบุว่าเกมในสนามนี้เล่นจบแล้วหรือยัง?</p>
             <div class="flex flex-col gap-2">
-                <button id="btnCourtFinishNormal" class="bg-emerald-600 hover:bg-emerald-700 py-2.5 rounded-lg text-sm font-semibold transition">หมดเวลา และเกมจบแล้ว (บันทึกสกอร์)</button>
                 <button id="btnCourtFinishInterrupted" class="bg-amber-600 hover:bg-amber-700 py-2.5 rounded-lg text-sm font-semibold transition">ยังไม่จบเกม (ส่งกลับไปหัวคิวอันดับ 1)</button>
+		<button id="btnCourtFinishNormal" class="bg-emerald-600 hover:bg-emerald-700 py-2.5 rounded-lg text-sm font-semibold transition">หมดเวลา และเกมจบแล้ว (บันทึกสกอร์)</button>
                 <button onclick="closeModal('closeCourtModal')" class="bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-sm font-semibold text-slate-300 transition mt-2">ยกเลิก</button>
             </div>
         </div>
     </div>
 
-    <div id="addCourtNotificationModal" class="fixed inset-0 bg-black/75 hidden items-center justify-center z-50 p-4">
+    		<div id="addCourtNotificationModal" class="fixed inset-0 bg-black/75 hidden items-center justify-center z-50 p-4">
         <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-xl p-5 shadow-2xl text-center">
             <h3 class="text-lg font-bold text-teal-400 mb-2"><i class="fa-solid fa-circle-info mr-2"></i>เปิดคอร์ดเพิ่มสำเร็จ!</h3>
             <p class="text-sm text-slate-300 mb-4">กรุณาเลือก 1 ทีมจากคิวที่กำลังรอเพื่อเข้าสู่คอร์ดใหม่นี้ทันที</p>
@@ -214,8 +235,49 @@
             </div>
         </div>
     </div>
+	
+		<div id="notificationModal" class="fixed inset-0 bg-black/75 hidden items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-xl p-5 shadow-2xl text-center">
+            <div class="mb-3">
+                <span id="notificationIcon" class="text-3xl"><i class="fa-solid fa-circle-info text-amber-400"></i></span>
+            </div>
+            <h3 id="notificationText" class="text-lg font-bold text-white mb-2">แจ้งเตือน</h3>
+            <div id="notificationMessage" class="text-sm text-slate-300 mb-5 text-left bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+            </div>
+            
+            <!-- 🌟 ปรับส่วนปุ่มด้านล่างให้เป็น 2 ปุ่ม (ตกลง / ยกเลิก) -->
+            <div id="notificationButtons" class="flex gap-2">
+                <button id="btnNotiCancel" onclick="cancelPendingMatch()" class="hidden flex-1 bg-rose-600 hover:bg-rose-700 py-2 rounded-lg text-sm font-semibold text-white transition">
+                    <i class="fa-solid fa-xmark mr-1"></i>ยกเลิก
+                </button>
+                <button id="btnNotiConfirm" onclick="confirmPendingMatch()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 py-2 rounded-lg text-sm font-semibold text-white transition">
+                    <i class="fa-solid fa-check mr-1"></i>ตกลง
+                </button>
+            </div>
+        </div>
+    </div>
 
+		<!-- Modal แจ้งเตือนผู้เล่นพัก (Rest) นานเกิน 2 รอบ -->
+		<div id="restWarningModal" class="fixed inset-0 bg-black/75 hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-xl p-5 shadow-2xl text-center">
+        <div class="mb-3">
+            <span class="text-3xl"><i class="fa-solid fa-bed text-amber-400"></i></span>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-1">แจ้งเตือนผู้เล่นพัก (Rest)</h3>
+        <p class="text-xs text-slate-400 mb-4">พบผู้เล่นที่อยู่ในสถานะพัก (Rest) ต่อเนื่องตั้งแต่ 2 รอบการสุ่มขึ้นไป:</p>
+        
+        <div id="restWarningList" class="max-h-[220px] overflow-y-auto space-y-2 bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 mb-5 text-left"></div>
 
+        <div class="flex gap-2">
+            <button onclick="setAllRestingPlayersReady()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 py-2 rounded-lg text-sm font-semibold text-white transition">
+                <i class="fa-solid fa-user-check mr-1"></i>เปลี่ยนเป็น Ready ทั้งหมด
+            </button>
+            <button onclick="closeModal('restWarningModal')" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-semibold text-slate-300 transition">
+                พักต่อ
+            </button>
+        </div>
+    </div>
+</div>
 
     <script>
         // โครงสร้างข้อมูลหลัก
@@ -227,7 +289,8 @@
         ];
         let newlyAddedCourtId = null;
         let notificationTimeout = null;
-function init() {
+
+	function init() {
             const container = document.getElementById('playerInputList');
             container.innerHTML = '';
             players = [];
@@ -240,19 +303,41 @@ function init() {
                 c.emergency = false;
             });
             
-            const playerNames = ['มิว', 'อาท', 'น้าดำ', 'มาย', 'นิ้ง', 'ตั้ม', 'น้ำแข็ง', 'เก่ง', 'มัดหมี่', 'ก้อง', 'น่ง', 'มิกซ์', 'เมย์', 'นะ', 'เดียร์', 'อาโย', 'แบม', 'บอม', 'พี่โต้ง', 'พี่แชมป์'];
+            	// ✅ ใช้รูปแบบนี้แทน เพื่อระบุทั้งชื่อและเพศ (M = ชาย, W = หญิง)
+            const initialPlayers = [
+                { name: 'พี่มิว', gender: 'W' },
+                { name: 'พี่อาท', gender: 'M' },
+                { name: 'พี่มิกซ์', gender: 'M' },
+                { name: 'พี่เมย์', gender: 'W' },
+                { name: 'น้าดำ', gender: 'M' },
+		{ name: 'อาออฟ', gender: 'M' },
+                { name: 'อาโย', gender: 'M' },
+                { name: 'มาย', gender: 'M' },
+                { name: 'นิ้ง', gender: 'W' },
+                { name: 'ตั้ม', gender: 'M' },
+                { name: 'น้ำแข็ง', gender: 'W' },
+                { name: 'เก่ง', gender: 'M' },
+                { name: 'มัดหมี่', gender: 'W' },
+                { name: 'พี่นะ', gender: 'M' },
+                { name: 'พี่โต้ง', gender: 'M' },
+                { name: 'บูม', gender: 'M' },
+                { name: 'พี่โอ', gender: 'M' },
+                { name: 'พี่เดียร์', gender: 'M' },
+            ];
             
-            for (let i = 0; i < playerNames.length; i++) {
+            for (let i = 0; i < initialPlayers.length; i++) {
                 players.push({
                     id: i + 1,
-                    name: playerNames[i],
-                    level: 'L2',
+                    name: initialPlayers[i].name,
+                    gender: initialPlayers[i].gender, // ดึงเพศที่ตั้งไว้มาใช้
                     gamesPlayed: 0,
                     history: {}, 
                     status: 'ready', 
-                    cooldown: 0
+                    cooldown: 0,
+                    restRounds: 0
                 });
             }
+
             renderPlayerInputs();
             renderStats();
             renderCourts();
@@ -264,26 +349,162 @@ function init() {
             document.getElementById('playerCount').textContent = count;
         }
 
-        function showNotification(title, message, iconClass = 'fa-circle-info', bgColor = 'amber') {
+
+	let isEditGamesMode = false;
+
+// ฟังก์ชันสลับโหมด แก้ไข / ดูปกติ
+	function toggleEditGamesMode(state) {
+    isEditGamesMode = state;
+    
+    const btnStart = document.getElementById('btn-edit-games-start');
+    const actionsDiv = document.getElementById('edit-games-actions');
+
+    if (isEditGamesMode) {
+        // เมื่ออยู่ในโหมดแก้ไข: ซ่อนปุ่ม "แก้ไขเกม" แล้วแสดงปุ่ม "บันทึก ✔️" กับ "ยกเลิก ⛔"
+        if (btnStart) btnStart.classList.add('hidden');
+        if (actionsDiv) actionsDiv.classList.remove('hidden');
+    } else {
+        // เมื่อกลับโหมดปกติ: แสดงปุ่ม "แก้ไขเกม" แล้วซ่อนชุดปุ่มแก้ไข
+        if (btnStart) btnStart.classList.remove('hidden');
+        if (actionsDiv) actionsDiv.classList.add('hidden');
+    }
+
+    renderStatsSummary(); // วาดตารางใหม่
+}
+
+	// ฟังก์ชัน วาดรายการสถิติจำนวนเกม (ปรับโค้ดในฟังก์ชัน renderStatsSummary เดิม)
+	function renderStatsSummary() {
+    const container = document.getElementById('statsSummary');
+    if (!container) return;
+
+    if (!players || players.length === 0) {
+        container.innerHTML = `<div class="p-3 text-slate-500 text-center">ยังไม่มีข้อมูลผู้เล่น</div>`;
+        return;
+    }
+
+    let html = '';
+    players.forEach(p => {
+        html += `
+            <div class="flex items-center justify-between p-2 hover:bg-slate-800/50 transition-colors">
+                <div class="flex items-center gap-2">
+                    <span class="font-medium text-slate-200">${p.name}</span>
+                    <span class="text-[10px] ${p.gender === 'M' ? 'text-blue-400' : 'text-pink-400'}">(${p.gender})</span>
+                </div>
+                <div>
+        `;
+
+        if (isEditGamesMode) {
+            // โหมดแก้ไข: แสดงช่องอินพุตตัวเลข
+            html += `
+                <div class="flex items-center gap-1">
+                    <input type="number" 
+                           id="edit-game-input-${p.id}" 
+                           value="${p.gamesPlayed}" 
+                           min="0" 
+                           max="99"
+                           class="w-12 bg-slate-950 border border-amber-500/60 text-amber-300 font-bold text-center rounded px-1 py-0.5 focus:outline-none text-xs" />
+                    <span class="text-slate-400 text-[10px]">เกม</span>
+                </div>
+            `;
+        } else {
+            // โหมดปกติ: แสดงจำนวนเกม
+            html += `
+                <span class="bg-slate-800 text-amber-400 font-bold px-2 py-0.5 rounded border border-slate-700 text-xs">
+                    ${p.gamesPlayed} เกม
+                </span>
+            `;
+        }
+
+        html += `
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+// ฟังก์ชันบันทึกจำนวนเกม
+function saveAllGamesPlayed() {
+    let changedCount = 0;
+
+    players.forEach(p => {
+        const input = document.getElementById(`edit-game-input-${p.id}`);
+        if (input) {
+            const newValue = parseInt(input.value, 10);
+            if (!isNaN(newValue) && newValue >= 0 && newValue !== p.gamesPlayed) {
+                p.gamesPlayed = newValue;
+                changedCount++;
+            }
+        }
+    });
+
+    toggleEditGamesMode(false);
+
+    if (changedCount > 0) {
+        showNotification('อัปเดตสถิติสำเร็จ', `ปรับปรุงจำนวนเกมเรียบร้อยแล้ว (${changedCount} คน)`, 'fa-check-circle', 'emerald');
+    }
+}
+
+
+
+	// 🌟 ตัวแปรเก็บคิวชั่วคราวรอการยืนยันตกลง/ยกเลิก
+        let pendingMatchData = null;
+
+        function showNotification(title, messageHtml, iconClass = 'fa-circle-info', bgColor = 'amber', showCancelBtn = false) {
             const modal = document.getElementById('notificationModal');
-            const iconElement = document.getElementById('notificationIcon');
             const titleElement = document.getElementById('notificationText');
             const messageElement = document.getElementById('notificationMessage');
+            const iconElement = document.getElementById('notificationIcon');
+            const btnConfirm = document.getElementById('btnNotiConfirm');
+            const btnCancel = document.getElementById('btnNotiCancel');
 
             titleElement.textContent = title;
-            messageElement.textContent = message;
-            iconElement.className = `fa-solid ${iconClass} text-${bgColor}-400`;
+            messageElement.innerHTML = messageHtml; 
+
+            if (iconElement) {
+                iconElement.innerHTML = `<i class="fa-solid ${iconClass} text-4xl text-${bgColor}-400"></i>`;
+            }
+
+            // จัดการแสดงผลปุ่ม ตกลง / ยกเลิก
+            if (showCancelBtn) {
+                btnCancel.classList.remove('hidden');
+                btnConfirm.innerText = 'ตกลง';
+                btnConfirm.onclick = confirmPendingMatch;
+            } else {
+                btnCancel.classList.add('hidden');
+                btnConfirm.innerText = 'รับทราบ';
+                btnConfirm.onclick = closeNotification;
+            }
 
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
-            if (notificationTimeout) {
-                clearTimeout(notificationTimeout);
-            }
+            if (notificationTimeout) clearTimeout(notificationTimeout);
+        }
 
-            notificationTimeout = setTimeout(() => {
-                closeNotification();
-            }, 4000);
+        // 🌟 ฟังก์ชันเมื่อกด "ตกลง" ยอมรับการเล่นคู่ซ้ำ
+		function confirmPendingMatch() {
+    if (pendingMatchData) {
+        pendingMatchData.newQueues.forEach(q => queues.push(q));
+        pendingMatchData.affectedPlayers.forEach(id => {
+            let p = players.find(x => x.id === id);
+            if (p) p.status = 'queued';
+        });
+
+        pendingMatchData = null;
+        renderPlayerInputs();
+        renderQueue();
+        autoFillEmptyCourts();
+        
+        updateRestRoundsAndCheck(); // 👈 ใส่เพิ่มตรงนี้ครับ
+    }
+    closeNotification();
+}
+        // 🌟 ฟังก์ชันเมื่อกด "ยกเลิก" เพื่อกลับไปดึงคน Rest มาเข้าร่วม
+        function cancelPendingMatch() {
+            pendingMatchData = null;
+            closeNotification();
         }
 
         function closeNotification() {
@@ -295,61 +516,198 @@ function init() {
             }
         }
 
-        function addPlayerFromInput() {
-            const nameInput = document.getElementById('newPlayerName');
-            const levelSelect = document.getElementById('newPlayerLevel');
-            const name = nameInput.value && nameInput.value.trim();
-            const level = levelSelect.value || 'L2';
-            if (!name) {
-                showNotification('แจ้งเตือน', 'กรุณากรอกชื่อผู้เล่นก่อนกดเพิ่ม', 'fa-exclamation-circle', 'rose');
-                return;
-            }
-            let nextId = players.length > 0 ?
-            Math.max(...players.map(p => p.id)) + 1 : 1;
-            const newPlayer = {
-                id: nextId,
-                name,
-                level,
-                gamesPlayed: 0,
-                history: {},
-                status: 'ready',
-                cooldown: 0
-            };
-            players.push(newPlayer);
-            nameInput.value = '';
-            levelSelect.value = 'L2';
-            renderPlayerInputs();
-            renderStats();
-            updatePlayerCount();
-        }
+ 	function addPlayerFromInput() {
+    const nameInput = document.getElementById('newPlayerName');
+    const genderSelect = document.getElementById('newPlayerGender');
+    const friendzoneCheck = document.getElementById('isFriendzone'); // ดึงสถานะของปุ่ม 🍒
 
-        function renderPlayerInputs() {
-            const container = document.getElementById('playerInputList');
-            container.innerHTML = '';
-            players.filter(p => p.status === 'ready' || p.status === 'rest').forEach((p, idx) => {
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-slate-800 text-xs";
-                tr.innerHTML = `
-                    <td class="py-1.5 font-medium text-slate-200">
-                         <input type="text" value="${p.name}" onchange="updatePlayerName(${p.id}, this.value)" class="bg-slate-950 border border-slate-700 rounded px-1 py-0.5 w-28 text-emerald-400">
-                        <button onclick="deletePlayer(${p.id})" title="ลบผู้เล่น" class="ml-2 text-xs text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash-can"></i></button>
-                    </td>
-                    <td class="py-1.5">
-                        <select onchange="updatePlayerLevel(${p.id}, this.value)" class="bg-slate-950 border border-slate-700 rounded px-1 py-0.5 text-slate-300">
-                            <option value="L1" ${p.level === 'L1' ? 'selected' : ''}>L1 (ใหม่)</option>
-                            <option value="L2" ${p.level === 'L2' ? 'selected' : ''}>L2 (ทั่วไป)</option>
-                            <option value="L3" ${p.level === 'L3' ? 'selected' : ''}>L3 (แบก)</option>
-                        </select>
-                    </td>
-                    <td class="py-1.5 text-center">
-                        <button onclick="togglePlayerStatus(${p.id})" class="px-2 py-0.5 rounded text-[10px] font-bold ${p.status === 'ready' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-slate-700 text-slate-400'}">
-                            ${p.status === 'ready' ? 'Ready' : 'Rest'}
-                        </button>
-                    </td>
-                `;
-                container.appendChild(tr);
-            });
+    let name = nameInput.value && nameInput.value.trim();
+    const gender = (genderSelect && genderSelect.value) ? genderSelect.value : 'M';
+
+    if (!name) {
+        showNotification('แจ้งเตือน', 'กรุณากรอกชื่อผู้เล่นก่อนกดเพิ่ม', 'fa-exclamation-circle', 'rose');
+        return;
+    }
+
+    // ถ้าติ๊ก 🍒 ไว้ ให้เติมอีโมจิต่อท้ายชื่ออัตโนมัติ
+    if (friendzoneCheck && friendzoneCheck.checked) {
+        name = name + ' 🍒';
+    }
+
+    let nextId = players.length > 0 ? Math.max(...players.map(p => p.id)) + 1 : 1;
+    
+    const newPlayer = {
+        id: nextId,
+        name,
+        gender: gender, 
+        gamesPlayed: 0,
+        history: {},
+        status: 'ready',
+        cooldown: 0,
+	restRounds: 0
+    };
+    
+    players.push(newPlayer);
+    
+    // ล้างค่าข้อมูลหลังจากเพิ่มเสร็จ
+    nameInput.value = '';
+    if (genderSelect) genderSelect.value = 'M';
+    if (friendzoneCheck) friendzoneCheck.checked = false; // เอาติ๊ก 🍒 ออกอัตโนมัติเพื่อป้องกันลืม
+    
+    renderPlayerInputs();
+    renderStats();
+    updatePlayerCount();
+}
+
+	function toggleFriendzone(id) {
+    let p = players.find(x => x.id === id);
+    if(p) {
+        if(p.name.includes('🏋')) {
+            p.name = p.name.replace(/\s*🏋/g, ''); 
+        } else {
+            p.name = p.name.trim() + ' 🏋';
         }
+        renderPlayerInputs();
+        renderStats();
+        renderCourts();
+        renderQueue();
+    }
+}
+	
+
+	function renderPlayerInputs() {
+    const container = document.getElementById('playerInputList');
+    container.innerHTML = '';
+    players.filter(p => p.status === 'ready' || p.status === 'rest').forEach((p, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = "border-b border-slate-800 text-xs";
+
+        // เพิ่มการคำนวณป้ายจำนวนรอบพัก และการแสดงผลสีปุ่ม
+        let restBadge = (p.status === 'rest' && p.restRounds > 0) ? ` (${p.restRounds} รอบ)` : '';
+        let btnClass = p.status === 'ready' 
+            ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' 
+            : (p.restRounds >= 2 
+                ? 'bg-amber-950 text-amber-400 border border-amber-600 animate-pulse' 
+                : 'bg-slate-700 text-slate-400');
+
+        tr.innerHTML = `
+    <td class="py-1.5 font-medium text-slate-200 flex items-center gap-1">
+         <input type="text" value="${p.name}" onchange="updatePlayerName(${p.id}, this.value)" class="bg-slate-950 border border-slate-700 rounded px-1 py-0.5 w-28 text-emerald-400">
+        <button onclick="deletePlayer(${p.id})" title="ลบผู้เล่น" class="ml-1 text-xs text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash-can"></i></button>
+        <button onclick="toggleFriendzone(${p.id})" title="สลับสถานะ Friendzone" class="text-sm transition-all ${p.name.includes('🏋') ? 'opacity-100 drop-shadow-[0_0_5px_rgba(236,72,153,0.8)]' : 'opacity-30 grayscale'}">🏋</button>
+    </td>
+            <td class="py-1.5">
+                <select onchange="updatePlayerGender(${p.id}, this.value)" class="bg-slate-950 border border-slate-700 rounded px-1 py-0.5 text-slate-300">
+                    <!-- ✅ แก้ไขเงื่อนไขการเช็คให้ตรงกับ value 'W' -->
+                    <option value="M" ${p.gender === 'M' ? 'selected' : ''}>ชาย (M)</option>
+                    <option value="W" ${p.gender === 'W' ? 'selected' : ''}>หญิง (W)</option>
+                </select>
+            </td>
+            <td class="py-1.5 text-center">
+                <button onclick="togglePlayerStatus(${p.id})" class="px-2 py-0.5 rounded text-[10px] font-bold ${btnClass}">
+                    ${p.status === 'ready' ? 'Ready' : 'Rest' + restBadge}
+                </button>
+            </td>
+        `;
+        container.appendChild(tr);
+    });
+}
+
+	// 🌟 ตัวแปรเก็บสถานะเปิด/ปิด ปุ่มรอ ( true = เปิดการรอ / false = ทำงานปกติ )
+let isQueuePaused = false;
+
+// 🌟 ฟังก์ชันสลับสถานะ ON / OFF
+function toggleQueuePause() {
+    isQueuePaused = !isQueuePaused;
+    
+    const btn = document.getElementById('btnQueuePause');
+    if (isQueuePaused) {
+        btn.className = "bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-3 py-2 rounded-lg text-sm shadow transition flex items-center gap-1.5";
+        btn.innerHTML = `<i class="fa-solid fa-circle-pause"></i> รอ: ON`;
+    } else {
+        btn.className = "bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold px-3 py-2 rounded-lg text-sm shadow transition flex items-center gap-1.5";
+        btn.innerHTML = `<i class="fa-solid fa-circle-play"></i> รอ: OFF`;
+    }
+}
+
+	// 🌟 ฟังก์ชันนับรอบ Rest และเรียก Modal เตือน
+	function updateRestRoundsAndCheck() {
+    let longRestingPlayers = [];
+    players.forEach(p => {
+        if (p.status === 'rest') {
+            p.restRounds = (p.restRounds || 0) + 1;
+            if (p.restRounds >= 2) {
+                longRestingPlayers.push(p);
+            }
+        } else {
+            p.restRounds = 0;
+        }
+    });
+
+    if (longRestingPlayers.length > 0) {
+        openRestWarningModal(longRestingPlayers);
+    }
+}
+
+	function openRestWarningModal(restingList) {
+    renderRestWarningList(restingList);
+    const modal = document.getElementById('restWarningModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+	function renderRestWarningList(restingList) {
+    const container = document.getElementById('restWarningList');
+    if (!container) return;
+
+    let currentResting = restingList || players.filter(p => p.status === 'rest' && p.restRounds >= 2);
+
+    if (currentResting.length === 0) {
+        closeModal('restWarningModal');
+        return;
+    }
+
+    container.innerHTML = '';
+    currentResting.forEach(p => {
+        const div = document.createElement('div');
+        div.className = "flex justify-between items-center bg-slate-800 p-2.5 rounded-lg border border-slate-700 text-xs";
+        div.innerHTML = `
+            <div class="flex items-center gap-2">
+                <span class="text-amber-400 font-bold"><i class="fa-solid fa-bed mr-1"></i>${p.name} (${p.gender})</span>
+                <span class="text-[10px] bg-slate-900 px-1.5 py-0.5 rounded text-slate-400">พักมา ${p.restRounds} รอบ</span>
+            </div>
+            <button onclick="setSinglePlayerReady(${p.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-xs font-semibold transition flex items-center gap-1">
+                <i class="fa-solid fa-check text-[10px]"></i> Ready
+            </button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+	function setSinglePlayerReady(id) {
+    let p = players.find(x => x.id === id);
+    if (p) {
+        p.status = 'ready';
+        p.restRounds = 0;
+    }
+    renderPlayerInputs();
+    renderStats();
+    renderRestWarningList();
+}
+
+	function setAllRestingPlayersReady() {
+    players.forEach(p => {
+        if (p.status === 'rest' && p.restRounds >= 2) {
+            p.status = 'ready';
+            p.restRounds = 0;
+        }
+    });
+    renderPlayerInputs();
+    renderStats();
+    closeModal('restWarningModal');
+}
 
         function deletePlayer(id) {
             if(!confirm('ต้องการลบผู้เล่นคนนี้ออกจากระบบจริง ๆ ใช่หรือไม่?')) return;
@@ -379,9 +737,9 @@ function init() {
             renderPlayerInputs();
         }
 
-        function updatePlayerLevel(id, val) {
+        function updatePlayerGender(id, val) {
             let p = players.find(x => x.id === id);
-            if(p) p.level = val;
+            if(p) p.gender = val;
             renderStats();
         }
 
@@ -407,14 +765,14 @@ function init() {
                 div.className = "flex justify-between items-center py-1.5 cursor-pointer hover:bg-slate-800 px-1 rounded transition";
                 div.setAttribute('onclick', `showIndividualHistory(${p.id})`);
                 div.innerHTML = `
-                     <span class="font-medium text-slate-300">${p.name} <span class="text-[10px] px-1 bg-slate-700 rounded text-amber-400">${p.level}</span></span>
+                     <span class="font-medium text-slate-300">${p.name} <span class="text-[10px] px-1 bg-slate-700 rounded text-amber-400">${p.gender}</span></span>
                     <span class="${badgeClass}">${p.gamesPlayed} เกม</span>
                 `;
                 container.appendChild(div);
             });
         }
 
-        const getLvlValue = (p) => (p.level === 'L3' ? 3 : p.level === 'L2' ? 2 : 1);
+        const getGenderValue = (p) => (p.gender === 'M' ? 1 : 0);
         function combinations(arr, k) {
             const results = [];
             function helper(start, combo) {
@@ -452,96 +810,236 @@ function init() {
             return array;
         }
 
-        function matchmake() {
-            // 4. เงื่อนไขเพิ่มเติม: ตรวจสอบว่ามีคอร์ดว่าง (Active และไม่มีคนเล่น) อย่างน้อย 1 ค��ร์ด และไม่มีคิวรออยู่ในระบบ
-            let hasEmptyCourt = courts.some(c => c.isActive && !c.teamA[0] && !c.teamA[1] && !c.teamB[0] && !c.teamB[1]);
+	// 🌟 ฟังก์ชันจัดคิวภาพรวมกระจายผู้เล่นทั้งก๊วน (Prevent Leftover Repeat Pairs)
+function matchmake() {
+    let hasEmptyCourt = courts.some(c => c.isActive && !c.teamA[0] && !c.teamA[1] && !c.teamB[0] && !c.teamB[1]);
+    
+    if (!hasEmptyCourt || queues.length > 0) {
+        showNotification('ไม่สามารถจัดคิวได้', 'จะกดสุ่มคิวได้ก็ต่อเมื่อมีคอร์ดในสนามว่างอย่างน้อย 1 คอร์ด และระบบไม่มีคิวรออยู่เท่านั้น', 'fa-ban', 'rose');
+        return;
+    }
+
+    tickCooldowns();
+    autoFillEmptyCourts();
+
+    if (queues.length > 0) {
+        showNotification('แจ้งเตือน', 'มีคิวรออยู่ในระบบ ระบบจะเติมคิวเดิมลงสนามก่อน', 'fa-clock', 'amber');
+        renderQueue();
+        return;
+    }
+
+    let busyPlayerIds = [];
+    courts.forEach(c => {
+        [...c.teamA, ...c.teamB].forEach(p => { if (p) busyPlayerIds.push(p.id); });
+    });
+    
+    let available = players.filter(p => p.status === 'ready' && !busyPlayerIds.includes(p.id) && (!p.cooldown || p.cooldown === 0));
+    
+    if (available.length < 4) {
+        showNotification('จำนวนผู้เล่นไม่เพียงพอ', `จำนวนผู้เล่นพร้อมเล่นนอกสนามมีเพียง ${available.length} คน (ต้องการอย่างน้อย 4 คน)`, 'fa-users', 'rose');
+        return;
+    }
+
+    // 🌟 กำหนดน้ำหนักโทษ (Penalty Weights)
+    const weightAllWomen = 100000000; // น้ำหนักโทษสูงสุดเพื่อเลี่ยงกรณีผู้หญิง 4 คน
+    const weightRepeat = 10000000;   // ลงโทษคู่ซ้ำ
+    const weightTotalGames = 2000;   
+    const weightGamesRange = 1000;   
+    const weightBalance = 100;
+
+    let bestGlobalMatch = null;
+    let bestGlobalScore = Infinity;
+
+    // จำลองการสลับผู้เล่นจัดลงทุกคิวพร้อมกัน 300 รูปแบบ
+    const TRIALS = 300;
+
+    for (let t = 0; t < TRIALS; t++) {
+        let pool = shuffleArray([...available]); // สลับลำดับคนพร้อมเล่นทั้งหมดแบบสุ่มแท้จริง
+        let currentTrialQueues = [];
+        let currentTrialScore = 0;
+
+        // แบ่งผู้เล่นลงคิวทีละ 4 คน จากลำดับที่สลับไว้แล้ว
+        while (pool.length >= 4) {
+            let group = pool.splice(0, 4);
             
-            if (!hasEmptyCourt || queues.length > 0) {
-                showNotification('ไม่สามารถจัดคิวได้', 'จะกดสุ่มคิวได้ก็ต่อเมื่อมีคอร์ดในสนามว่างอย่างน้อย 1 คอร์ด และระบบไม่มีคิวรออยู่เท่านั้น (โปรดรอให้ผู้เล่นกดจบเกมก่อน)', 'fa-ban', 'rose');
-                return;
-            }
+            // 🌟 ตรวจสอบว่ากลุ่ม 4 คนนี้เป็นผู้หญิงทั้งหมดหรือไม่ (gender === 'W')
+            const womenCount = group.filter(p => p.gender === 'W').length;
+            const isAllWomen = (womenCount === 4);
 
-            tickCooldowns();
-            autoFillEmptyCourts();
+            const sumGames = group.reduce((sum, p) => sum + p.gamesPlayed, 0);
+            const games = group.map(p => p.gamesPlayed);
+            const gamesRange = Math.max(...games) - Math.min(...games); 
 
-            if (queues.length > 0) {
-                showNotification('แจ้งเตือน', 'มีคิวรออยู่ในระบบ ระบบจะเติมคิวเดิมลงสนามก่อน และจะไม่สร้างคิวใหม่จนกว่าจะหมดคิวเดิม', 'fa-clock', 'amber');
-                renderQueue();
-                return;
-            }
+            const pairings = [
+                { A: [group[0], group[1]], B: [group[2], group[3]] },
+                { A: [group[0], group[2]], B: [group[1], group[3]] },
+                { A: [group[0], group[3]], B: [group[1], group[2]] }
+            ];
 
-            let busyPlayerIds = [];
-            courts.forEach(c => {
-                [...c.teamA, ...c.teamB].forEach(p => { if (p) busyPlayerIds.push(p.id); });
+            let bestPairing = null;
+            let minPairingScore = Infinity;
+
+            pairings.forEach(setup => {
+                const repeatA = setup.A[0].history[setup.A[1].id] || 0;
+                const repeatB = setup.B[0].history[setup.B[1].id] || 0;
+                const totalRepeat = repeatA + repeatB;
+
+                const genA = getGenderValue(setup.A[0]) + getGenderValue(setup.A[1]);
+                const genB = getGenderValue(setup.B[0]) + getGenderValue(setup.B[1]);
+                const balanceDiff = Math.abs(genA - genB);
+
+                // 🌟 รวมคะแนนโทษกรณีเป็นผู้หญิงล้วน 4 คน
+                const score = (isAllWomen ? weightAllWomen : 0) +
+                              (totalRepeat * weightRepeat) + 
+                              (sumGames * weightTotalGames) + 
+                              (gamesRange * weightGamesRange) + 
+                              (balanceDiff * weightBalance) + 
+                              Math.random();
+
+                if (score < minPairingScore) {
+                    minPairingScore = score;
+                    bestPairing = { group, setup, score, repeatA, repeatB, isAllWomen };
+                }
             });
-            let available = players.filter(p => p.status === 'ready' && !busyPlayerIds.includes(p.id) && (!p.cooldown || p.cooldown === 0));
-            if (available.length < 4) {
-                showNotification('จำนวนผู้เล่นไม่เพียงพอ', `จำนวนผู้เล่นที่พร้อมเล่นอยู่นอกสนาม มีไม่เพียงพอสำหรับการจัดทีมคู่ (อย่างน้อยต้องการ 4 คน) ปัจจุบันมี ${available.length} คน`, 'fa-users', 'rose');
-                return;
-            }
 
-            shuffleArray(available);
-
-            const weightRepeat = 100000;
-            const weightTotalGames = 5000;   
-            const weightGamesRange = 2000;   
-            const weightBalance = 100;
-            while (available.length >= 4) {
-                const combos = combinations(available, 4);
-                let bestChoice = null;
-                let bestScore = Infinity;
-
-                combos.forEach(group => {
-                    const sumGames = group.reduce((sum, p) => sum + p.gamesPlayed, 0);
-                    const games = group.map(p => p.gamesPlayed);
-                    const gamesRange = Math.max(...games) - Math.min(...games); 
-
-                     const pairings = [
-                        { A: [group[0], group[1]], B: [group[2], group[3]] },
-                        { A: [group[0], group[2]], B: [group[1], group[3]] },
-                        { A: [group[0], group[3]], B: [group[1], group[2]] }
-                    ];
-
-                    pairings.forEach(setup => {
-                        const repeatA = setup.A[0].history[setup.A[1].id] || 0;
-                         const repeatB = setup.B[0].history[setup.B[1].id] || 0;
-                        const totalRepeat = repeatA + repeatB;
-
-                        const skillA = getLvlValue(setup.A[0]) + getLvlValue(setup.A[1]);
-                        const skillB = getLvlValue(setup.B[0]) + getLvlValue(setup.B[1]);
-                        const balanceDiff = Math.abs(skillA - skillB);
-
-                        const score = (totalRepeat * weightRepeat) + 
-                                      (sumGames * weightTotalGames) + 
-                                      (gamesRange * weightGamesRange) + 
-                                      (balanceDiff * weightBalance) + 
-                                      Math.random();
-                        if (score < bestScore) {
-                            bestScore = score;
-                            bestChoice = { group, setup, score };
-                        }
-                    });
-                });
-
-                if (!bestChoice) break;
-
-                bestChoice.setup.A.forEach(p => { let pp = players.find(x => x.id === p.id); if (pp) { pp.status = 'queued'; } });
-                bestChoice.setup.B.forEach(p => { let pp = players.find(x => x.id === p.id); if (pp) { pp.status = 'queued'; } });
-                queues.push({
-                    id: Date.now() + Math.random(),
-                    teamA: [bestChoice.setup.A[0].id, bestChoice.setup.A[1].id],
-                    teamB: [bestChoice.setup.B[0].id, bestChoice.setup.B[1].id],
-                    isInterrupted: false
-                 });
-
-                const usedIds = new Set(bestChoice.group.map(p => p.id));
-                available = available.filter(p => !usedIds.has(p.id));
-            }
-
-            renderPlayerInputs();
-            renderQueue();
-            autoFillEmptyCourts();
+            currentTrialScore += minPairingScore;
+            currentTrialQueues.push(bestPairing);
         }
+
+        // คัดเลือกแผนงานที่คะแนนโทษต่ำที่สุด
+        if (currentTrialScore < bestGlobalScore) {
+            bestGlobalScore = currentTrialScore;
+            bestGlobalMatch = currentTrialQueues;
+        }
+    }
+
+    let tempQueues = [];
+    let tempAffectedPlayers = [];
+    let repeatedPairsInfo = [];
+    let allWomenQueuesInfo = []; // 🌟 เก็บข้อมูลกลุ่มที่เป็นผู้หญิง 4 คน
+
+    if (bestGlobalMatch) {
+        bestGlobalMatch.forEach(item => {
+            if (item.isAllWomen) {
+                allWomenQueuesInfo.push(item.group);
+            }
+            if (item.repeatA > 0) {
+                repeatedPairsInfo.push({ p1: item.setup.A[0], p2: item.setup.A[1], count: item.repeatA });
+            }
+            if (item.repeatB > 0) {
+                repeatedPairsInfo.push({ p1: item.setup.B[0], p2: item.setup.B[1], count: item.repeatB });
+            }
+
+            item.group.forEach(p => tempAffectedPlayers.push(p.id));
+
+            tempQueues.push({
+                id: Date.now() + Math.random(),
+                teamA: [item.setup.A[0].id, item.setup.A[1].id],
+                teamB: [item.setup.B[0].id, item.setup.B[1].id],
+                isInterrupted: false
+            });
+        });
+    }
+
+    // 🌟 แจ้งเตือน Modal กรณีติดเงื่อนไขคู่ซ้ำ หรือ ผู้หญิงล้วน 4 คน (กรณีเลี่ยงไม่ได้)
+    if (repeatedPairsInfo.length > 0 || allWomenQueuesInfo.length > 0) {
+        pendingMatchData = {
+            newQueues: tempQueues,
+            affectedPlayers: tempAffectedPlayers
+        };
+
+        const renderPlayerBadge = (p) => {
+            let statusBadge = "";
+            if (p.status === 'ready') {
+                statusBadge = `<span class="bg-emerald-950 text-emerald-300 border border-emerald-800/80 px-1.5 py-0.5 rounded text-[10px] inline-block m-0.5">${p.name} <b class="text-emerald-400">(Ready)</b></span>`;
+            } else if (p.status === 'rest') {
+                statusBadge = `<span class="bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.5 rounded text-[10px] inline-block m-0.5">${p.name} <b>(Rest)</b></span>`;
+            } else if (p.status === 'playing') {
+                statusBadge = `<span class="bg-amber-950 text-amber-300 border border-amber-800/80 px-1.5 py-0.5 rounded text-[10px] inline-block m-0.5">${p.name} <b>(Playing)</b></span>`;
+            } else if (p.status === 'queued') {
+                statusBadge = `<span class="bg-blue-950 text-blue-300 border border-blue-800/80 px-1.5 py-0.5 rounded text-[10px] inline-block m-0.5">${p.name} <b>(Queued)</b></span>`;
+            }
+            return statusBadge;
+        };
+
+        let msgHtml = `<div class="space-y-3 mb-3 max-h-[250px] overflow-y-auto pr-1">`;
+
+        // 👩‍👩‍👧‍👧 เตือนกรณีติดกลุ่มผู้หญิง 4 คน
+        if (allWomenQueuesInfo.length > 0) {
+            msgHtml += `
+                <div class="bg-rose-950/60 p-2.5 rounded-lg border border-rose-800 text-xs">
+                    <div class="font-bold text-rose-300 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-venus-double text-rose-400"></i>
+                        <span>พบกลุ่มผู้หญิงลงคอร์ดเดียวกัน 4 คน (เลี่ยงไม่ได้)</span>
+                    </div>
+                    <p class="text-slate-300 mb-2 leading-relaxed">
+                        <strong class="text-amber-400">เหตุผล:</strong> สัดส่วนผู้เล่นชายพร้อมเล่นในรอบนี้ไม่เพียงพอต่อการกระจายสัดส่วนลงคอร์ด
+                    </p>
+                    <div class="bg-slate-900 p-2 rounded border border-slate-800 text-slate-300 space-y-1">
+            `;
+            allWomenQueuesInfo.forEach((grp, idx) => {
+                const names = grp.map(p => `<span class="text-pink-400 font-semibold">${p.name}</span>`).join(', ');
+                msgHtml += `<div class="text-[11px]">• คิวกลุ่มผู้หญิง 4 คน: ${names}</div>`;
+            });
+            msgHtml += `</div></div>`;
+        }
+
+        // ⚠️ เตือนกรณีจับคู่ซ้ำ
+        if (repeatedPairsInfo.length > 0) {
+            msgHtml += `<p class="text-amber-400 font-bold text-xs">⚠️ ตรวจพบการจับคู่ซ้ำที่หลีกเลี่ยงไม่ได้ในการสุ่มรอบนี้:</p>`;
+            repeatedPairsInfo.forEach(pair => {
+                let unplayedP1 = players.filter(p => p.id !== pair.p1.id && (!pair.p1.history[p.id] || pair.p1.history[p.id] === 0));
+                let unplayedP2 = players.filter(p => p.id !== pair.p2.id && (!pair.p2.history[p.id] || pair.p2.history[p.id] === 0));
+
+                let p1Str = unplayedP1.length > 0 ? unplayedP1.map(renderPlayerBadge).join('') : '<span class="text-slate-500">คู่กับทุกคนในระบบครบแล้ว</span>';
+                let p2Str = unplayedP2.length > 0 ? unplayedP2.map(renderPlayerBadge).join('') : '<span class="text-slate-500">คู่กับทุกคนในระบบครบแล้ว</span>';
+
+                msgHtml += `
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-xs">
+                        <div class="font-bold text-amber-300 mb-2 border-b border-slate-800 pb-1 flex justify-between items-center">
+                            <span>${pair.p1.name} + ${pair.p2.name}</span>
+                            <span class="text-[10px] bg-amber-950 text-amber-400 px-1.5 py-0.5 rounded border border-amber-800">เคยคู่กัน ${pair.count} ครั้ง</span>
+                        </div>
+                        <div class="text-slate-300 space-y-2 pl-1 leading-relaxed">
+                            <div>
+                                <span class="text-slate-400 font-medium">• สมาชิกทั้งหมดที่ยังไม่เคยคู่กับ <strong class="text-emerald-400">${pair.p1.name}</strong>:</span>
+                                <div class="mt-1 flex flex-wrap">${p1Str}</div>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 font-medium">• สมาชิกทั้งหมดที่ยังไม่เคยคู่กับ <strong class="text-emerald-400">${pair.p2.name}</strong>:</span>
+                                <div class="mt-1 flex flex-wrap">${p2Str}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        msgHtml += `
+            </div>
+            <div class="border-t border-slate-700/80 pt-2 text-xs text-slate-400 leading-relaxed">
+                <strong class="text-slate-200">ทางเลือก:</strong><br>
+                • กด <strong class="text-emerald-400">"ตกลง"</strong> เพื่อยอมรับการจัดคิวนี้<br>
+                • กด <strong class="text-rose-400">"ยกเลิก"</strong> เพื่อกลับไปปรับเปลี่ยนสถานะผู้เล่น
+            </div>
+        `;
+
+        showNotification('ติดข้อจำกัดในการจัดคิว', msgHtml, 'fa-triangle-exclamation', 'amber', true);
+
+    } else {
+        tempQueues.forEach(q => queues.push(q));
+        tempAffectedPlayers.forEach(id => {
+            let p = players.find(x => x.id === id);
+            if (p) p.status = 'queued';
+        });
+
+        renderPlayerInputs();
+        renderQueue();
+        autoFillEmptyCourts();
+
+        updateRestRoundsAndCheck();
+    }
+}
 
       function renderQueue() {
     const container = document.getElementById('queueContainer');
@@ -594,9 +1092,9 @@ function init() {
             <div class="flex items-center gap-3">
                 ${tagLabel}
                 <div class="text-xs">
-                     <span class="text-emerald-400 font-semibold">${pA1?.name}(${pA1?.level}) + ${pA2?.name}(${pA2?.level})</span>
-                    <span class="text-slate-400 mx-2">VS</span>
-                    <span class="text-rose-400 font-semibold">${pB1?.name}(${pB1?.level}) + ${pB2?.name}(${pB2?.level})</span>
+                   	<span class="text-emerald-400 font-semibold">${pA1?.name}(${pA1?.gender || 'M'}) + ${pA2?.name}(${pA2?.gender || 'M'})</span>
+			<span class="text-slate-400 mx-2">VS</span>
+			<span class="text-rose-400 font-semibold">${pB1?.name}(${pB1?.gender || 'M'}) + ${pB2?.name}(${pB2?.gender || 'M'})</span>
                 </div>
              </div>
             <div class="flex items-center gap-2">
@@ -640,40 +1138,52 @@ function init() {
             }
         }
 
-       function autoFillEmptyCourts() {
-            for(let court of courts) {
-                // เพิ่มเงื่อนไข court.isActive เพื่อเช็คว่าคอร์ดเปิดอยู่ ถึงจะยอมให้เติมคนลงไป
-                if(court.isActive && !court.teamA[0] && !court.teamA[1] && !court.teamB[0] && !court.teamB[1]) {
-                    if(queues.length > 0) {
-                         let q = queues.shift();
-                        court.teamA = [players.find(x => x.id === q.teamA[0]), players.find(x => x.id === q.teamA[1])];
-                        court.teamB = [players.find(x => x.id === q.teamB[0]), players.find(x => x.id === q.teamB[1])];
-                        [...court.teamA, ...court.teamB].forEach(p => { if (p) p.status = 'playing'; });
-                    }
-                }
-            }
-            renderQueue();
-            renderCourts();
-            renderPlayerInputs();
-        }
+	function autoFillEmptyCourts() {
+    // 1. อัปเดตหน้าจอปัจจุบันให้เรียบร้อยก่อน (เพื่อให้คนที่เพิ่งจบเกมหลุดออกจากหน้าจอคอร์ด)
+    renderQueue();
+    renderCourts();
+    renderPlayerInputs();
 
-        function addCourt() {
-            let nextId = courts.length > 0 ?
-            Math.max(...courts.map(c => c.id)) + 1 : 1;
-            let newCourt = {
-                id: nextId,
-                name: `คอร์ด ${nextId}`,
-                teamA: [null, null],
-                teamB: [null, null],
-                emergency: false,
-                 isActive: true
-            };
-            courts.push(newCourt);
-            renderCourts();
-            
-            newlyAddedCourtId = nextId;
-            openAddCourtModal();
+    // 2. ถ้าเปิดโหมด "รอ : ON" ให้จบฟังก์ชันตรงนี้เลย (เพื่อไม่ให้ดึงคิวใหม่ลงสนาม)
+    if (isQueuePaused) return;
+
+    // 3. ถ้าไม่ได้กดรอ ไว้ ค่อยทำงานตามปกติ
+    for(let court of courts) {
+        if(court.isActive && !court.teamA[0] && !court.teamA[1] && !court.teamB[0] && !court.teamB[1]) {
+            if(queues.length > 0) {
+                let q = queues.shift();
+                court.teamA = [players.find(x => x.id === q.teamA[0]), players.find(x => x.id === q.teamA[1])];
+                court.teamB = [players.find(x => x.id === q.teamB[0]), players.find(x => x.id === q.teamB[1])];
+                [...court.teamA, ...court.teamB].forEach(p => { if (p) p.status = 'playing'; });
+            }
         }
+    }
+
+    // 4. อัปเดตหน้าจออีกครั้งหากมีการดึงคิวใหม่ลงสนาม
+    renderQueue();
+    renderCourts();
+    renderPlayerInputs();
+}
+
+        	function addCourt() {
+    let nextId = courts.length > 0 ?
+    Math.max(...courts.map(c => c.id)) + 1 : 1;
+    let newCourt = {
+        id: nextId,
+        name: `คอร์ด ${nextId}`,
+        teamA: [null, null],
+        teamB: [null, null],
+        emergency: false,
+         isActive: true
+    };
+    courts.push(newCourt);
+    
+    renderCourts();
+    renderQueue(); // ✨ เพิ่มบรรทัดนี้ เพื่อให้ Dropdown อัปเดตเห็นคอร์ดใหม่ทันที
+    
+    newlyAddedCourtId = nextId;
+    openAddCourtModal();
+}
 
         function openAddCourtModal() {
             const selectDropdown = document.getElementById('modalCourtQueueSelect');
@@ -736,13 +1246,7 @@ function init() {
             renderQueue(); 
         }
 
-        function toggleCourtActive(id) {
-            let court = courts.find(c => c.id === id);
-            if(court) {
-                court.isActive = !court.isActive;
-                renderCourts();
-            }
-        }
+
 
         function toggleEmergency(id) {
             let court = courts.find(c => c.id === id);
@@ -752,69 +1256,97 @@ function init() {
             }
         }
 
-        function kickPlayer(courtId, team, index) {
-            let court = courts.find(c => c.id === courtId);
-            if(court) {
-                let player = team === 'A' ?
-                court.teamA[index] : court.teamB[index];
-                if(player) player.status = 'ready';
-                if(team === 'A') court.teamA[index] = null;
-                if(team === 'B') court.teamB[index] = null;
-                renderCourts();
-                renderPlayerInputs();
-            }
-        }
+        	function kickPlayer(courtId, team, index) {
+    let court = courts.find(c => c.id === courtId);
+    if(court) {
+        let player = team === 'A' ?
+        court.teamA[index] : court.teamB[index];
+        if(player) player.status = 'ready';
+        if(team === 'A') court.teamA[index] = null;
+        if(team === 'B') court.teamB[index] = null;
+        renderCourts();
+        renderPlayerInputs();
+        renderQueue(); // ✨ เพิ่มบรรทัดนี้
+    }
+}
 
-        function renderCourts() {
+	// 🌟 ฟังก์ชัน Clear สมาชิกคอร์ดออกโดยไม่นับเกม และปรับสถานะเป็น Ready
+	function clearCourtPlayers(courtId) {
+    let court = courts.find(c => c.id === courtId);
+    if (court) {
+        let playing = [...court.teamA, ...court.teamB].filter(p => p !== null);
+        if (playing.length === 0) return;
+
+        playing.forEach(p => {
+            p.status = 'ready';
+        });
+
+        court.teamA = [null, null];
+        court.teamB = [null, null];
+
+        renderCourts();
+        renderPlayerInputs();
+        renderQueue();
+    }
+}
+
+ 	function renderCourts() {
             const container = document.getElementById('courtsGrid');
             container.innerHTML = '';
 
             courts.forEach(c => {
                 const div = document.createElement('div');
-                div.className = `bg-slate-900 border rounded-xl p-4 flex flex-col justify-between relative shadow-inner transition ${c.isActive ? 'border-slate-700 opacity-100' : 'border-slate-600 opacity-50'}`;
+                div.className = `bg-slate-900 border rounded-xl p-4 flex flex-col justify-between shadow-inner transition ${c.isActive ? 'border-slate-700 opacity-100' : 'border-slate-600 opacity-50'}`;
                 
                 let isCourtEmpty = !c.teamA[0] && !c.teamA[1] && !c.teamB[0] && !c.teamB[1];
-                 let statusLabel = isCourtEmpty ? '<span class="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded">ว่าง</span>' : '<span class="text-xs text-amber-400 bg-amber-950/50 border border-amber-900 px-2 py-0.5 rounded animate-pulse">กำลังแข่ง</span>';
-                
-                // ปุ่มเปิด/ปิดคอร์ด (ไม่ใช่ emergency)
-                let toggleBtnIcon = c.isActive ? '<i class="fa-solid fa-circle-check"></i>' : '<i class="fa-solid fa-circle-xmark"></i>';
-                let toggleBtnColor = c.isActive ? 'text-emerald-400 hover:text-emerald-300' : 'text-rose-400 hover:text-rose-300';
+                let statusLabel = isCourtEmpty 
+                    ? '<span class="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded">ว่าง</span>' 
+                    : '<span class="text-xs text-amber-400 bg-amber-950/50 border border-amber-900 px-2 py-0.5 rounded animate-pulse">กำลังแข่ง</span>';
 
                 div.innerHTML = `
-                     <div class="flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-2">
-                            <input type="text" value="${c.name}" onchange="updateCourtName(${c.id}, this.value)" class="bg-transparent border-b border-dashed border-slate-600 focus:border-emerald-400 font-bold text-sm text-slate-200 outline-none w-24" ${!c.isActive ? 'disabled' : ''}>
-                            ${statusLabel}
-                        </div>
-                        <div class="flex items-center gap-2">
-                             <button onclick="toggleCourtActive(${c.id})" class="transition duration-200 ${toggleBtnColor} text-xl" title="${c.isActive ? 'ปิดคอร์ด' : 'เปิดคอร์ด'}">
-                                ${toggleBtnIcon}
-                            </button>
-                            <button onclick="toggleEmergency(${c.id})" class="transition duration-200 ${c.emergency ? 'siren-glowing text-red-500 scale-110' : 'text-slate-600 grayscale opacity-50 hover:opacity-100'}" title="Emergency Mode">
-                                 <i class="fa-solid fa-lightbulb text-xl"></i>
-                            </button>
-                        </div>
-                     </div>
+	<!-- 1. Header คอร์ด (ชื่อ + สถานะ + ปุ่ม Clear + ปุ่มไซเรน) -->
+		<div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-800">
+  		  <div class="flex items-center gap-2">
+   		     <input type="text" value="${c.name}" onchange="updateCourtName(${c.id}, this.value)" class="bg-transparent border-b border-dashed border-slate-600 focus:border-emerald-400 font-bold text-sm text-slate-200 outline-none w-20" ${!c.isActive ? 'disabled' : ''}>
+    		    ${statusLabel}
+   		 </div>
+  		  <div class="flex items-center gap-2">
+      		  <!-- 🌟 ปุ่ม Clear ด้านข้างปุ่ม Emergency -->
+       	 <button onclick="clearCourtPlayers(${c.id})" class="bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white border border-amber-600/50 text-[10px] px-2 py-0.5 rounded font-bold transition flex items-center gap-1" title="เคลียร์ผู้เล่นออกโดยไม่นับเกม">
+            <i class="fa-solid fa-eraser"></i> Clear
+        </button>
+        <button onclick="toggleEmergency(${c.id})" class="transition duration-200 ${c.emergency ? 'siren-glowing text-red-500 scale-110' : 'text-slate-600 grayscale opacity-50 hover:opacity-100'}" title="Emergency Mode">
+            <i class="fa-solid fa-lightbulb text-lg"></i>
+        </button>
+    </div>
+</div>
 
-                    <div class="grid grid-cols-2 gap-2 border border-slate-800 rounded-lg p-2 bg-slate-950/60 mb-3 relative ${!c.isActive ? 'opacity-50' : ''}">
+                    <!-- 2. ตารางรายชื่อผู้เล่น ทีม A / ทีม B -->
+                    <div class="grid grid-cols-2 gap-3 border border-slate-800 rounded-lg p-2.5 bg-slate-950/60 mb-3 relative ${!c.isActive ? 'opacity-50' : ''}">
                         <div class="flex flex-col gap-1.5">
-                            <div class="text-[11px] font-bold text-center text-emerald-400/80 border-b border-slate-800 pb-1">ทีม A</div>
+                            <div class="text-[11px] font-bold text-center text-emerald-400 border-b border-slate-800 pb-1">ทีม A</div>
                             ${renderSlotHtml(c, 'A', 0)}
                             ${renderSlotHtml(c, 'A', 1)}
                         </div>
               
-                        <div class="absolute inset-y-0 left-1/2 w-[1px] bg-dashed bg-slate-800 pointer-events-none"></div>
+                        <div class="absolute inset-y-0 left-1/2 w-[1px] bg-slate-800 pointer-events-none"></div>
+
                         <div class="flex flex-col gap-1.5">
-                            <div class="text-[11px] font-bold text-center text-rose-400/80 border-b border-slate-800 pb-1">ทีม B</div>
-                             ${renderSlotHtml(c, 'B', 0)}
+                            <div class="text-[11px] font-bold text-center text-rose-400 border-b border-slate-800 pb-1">ทีม B</div>
+                            ${renderSlotHtml(c, 'B', 0)}
                             ${renderSlotHtml(c, 'B', 1)}
                         </div>
                     </div>
 
-                     <div class="flex flex-wrap gap-1.5 mt-auto text-xs ${!c.isActive ? 'opacity-50 pointer-events-none' : ''}">
-                        <button onclick="finishGame(${c.id})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 py-1.5 rounded font-medium transition text-center text-white font-semibold">จบเกม</button>
-                        <button onclick="openCloseCourtModal(${c.id})" class="flex-1 bg-rose-600 hover:bg-rose-700 py-1.5 rounded font-medium transition text-center text-white font-semibold">ปิดคอร์ด</button>
-                        <button onclick="randomFillSlot(${c.id})" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 py-1.5 rounded font-medium transition text-amber-400"><i class="fa-solid fa-shuffle mr-1"></i>สุ่มเติมคนเฉพาะสนามนี้</button>
+                    <!-- 3. แถวปุ่มควบคุมด้านล่าง (จัดเรียงใหม่ไม่ให้ดัน/เบี้ยว) -->
+                    <div class="flex flex-col gap-1.5 mt-auto text-xs ${!c.isActive ? 'opacity-50 pointer-events-none' : ''}">
+                        <div class="flex gap-1.5">
+                            <button onclick="finishGame(${c.id})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 py-1.5 rounded font-semibold transition text-white">จบเกม</button>
+                            <button onclick="openCloseCourtModal(${c.id})" class="flex-1 bg-rose-600 hover:bg-rose-700 py-1.5 rounded font-semibold transition text-white">ปิดคอร์ด</button>
+                        </div>
+                        <button onclick="randomFillSlot(${c.id})" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 py-1.5 rounded font-medium transition text-amber-400 text-[11px]">
+                            <i class="fa-solid fa-shuffle mr-1"></i>สุ่มเติมคนเฉพาะสนามนี้
+                        </button>
                     </div>
                 `;
                 container.appendChild(div);
@@ -829,7 +1361,7 @@ function init() {
 `<button onclick="kickPlayer(${court.id}, '${team}', ${index})" class="text-red-500 font-bold hover:text-red-400 px-1"><i class="fa-solid fa-circle-xmark"></i></button>` : '';
                 return `
                     <div class="flex justify-between items-center bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-300">
-                        <span class="truncate">${player.name} <span class="text-[10px] text-amber-500">${player.level}</span></span>
+                        <span class="truncate">${player.name} <span class="text-[10px] text-amber-500">${player.gender}</span></span>
                         ${kickBtn}
                      </div>
                 `;
@@ -842,7 +1374,7 @@ function init() {
                 return `
                     <select onchange="manuallySelectPlayer(${court.id}, '${team}', ${index}, this.value)" class="bg-white text-slate-900 text-[11px] border border-slate-800 rounded px-1 py-1 outline-none w-full" ${!court.isActive ? 'disabled' : ''}>
                         <option value="">- เลือกคนแมนนวล -</option>
-                        ${readyPool.map(p => `<option value="${p.id}">${p.name} (${p.level})</option>`).join('')}
+                        ${readyPool.map(p => `<option value="${p.id}">${p.name} (${p.gender})</option>`).join('')}
                     </select>
                 `;
             }
@@ -858,6 +1390,7 @@ function init() {
                 player.status = 'playing';
                 renderCourts();
                 renderPlayerInputs();
+		renderQueue(); // ✨ เพิ่มบรรทัดนี้
             }
         }
 
@@ -902,39 +1435,50 @@ function init() {
             document.getElementById('closeCourtModal').classList.add('flex');
         }
 
-        document.getElementById('btnCourtFinishNormal').onclick = function() {
-            if (targetCloseCourtId) {
-                finishGame(targetCloseCourtId);
-                closeModal('closeCourtModal');
-            }
-        };
-        document.getElementById('btnCourtFinishInterrupted').onclick = function() {
-            if (targetCloseCourtId) {
-                let court = courts.find(c => c.id === targetCloseCourtId);
-                if (court) {
-                    let playing = [...court.teamA, ...court.teamB].filter(x => x !== null);
-                    if(playing.length === 4) {
-                        playing.forEach(p => { if(p) p.status = 'queued'; });
-                        let group = {
-                            id: Date.now() + Math.random(),
-                            teamA: [court.teamA[0].id, court.teamA[1].id],
-                            teamB: [court.teamB[0].id, court.teamB[1].id],
-                             isInterrupted: true 
-                        };
-                        queues.unshift(group);
-                    } else {
-                        playing.forEach(p => { if(p) p.status = 'ready'; });
-                    }
-                    court.teamA = [null, null];
-                    court.teamB = [null, null];
-                }
-                closeModal('closeCourtModal');
-                renderQueue();
-                renderCourts();
-                renderPlayerInputs();
-            }
-        };
+	// แก้ไขส่วนนี้ใน <script>
+document.getElementById('btnCourtFinishNormal').onclick = function() {
+    if (targetCloseCourtId) {
+        finishGame(targetCloseCourtId);
         
+        // --- เพิ่มส่วนนี้เพื่อลบคอร์ด ---
+        courts = courts.filter(c => c.id !== targetCloseCourtId);
+        renderCourts();
+        // ------------------------------
+        
+        closeModal('closeCourtModal');
+    }
+};
+
+document.getElementById('btnCourtFinishInterrupted').onclick = function() {
+    if (targetCloseCourtId) {
+        let court = courts.find(c => c.id === targetCloseCourtId);
+        if (court) {
+            let playing = [...court.teamA, ...court.teamB].filter(x => x !== null);
+            if(playing.length === 4) {
+                playing.forEach(p => { if(p) p.status = 'queued'; });
+                let group = {
+                    id: Date.now() + Math.random(),
+                    teamA: [court.teamA[0].id, court.teamA[1].id],
+                    teamB: [court.teamB[0].id, court.teamB[1].id],
+                    isInterrupted: true 
+                };
+                queues.unshift(group);
+            } else {
+                playing.forEach(p => { if(p) p.status = 'ready'; });
+            }
+        }
+        
+        // --- เพิ่มส่วนนี้เพื่อลบคอร์ด ---
+        courts = courts.filter(c => c.id !== targetCloseCourtId);
+        // ------------------------------
+        
+        closeModal('closeCourtModal');
+        renderQueue();
+        renderCourts();
+        renderPlayerInputs();
+    }
+};
+
         function randomFillSlot(courtId) {
             let court = courts.find(c => c.id === courtId);
             if(!court) return;
@@ -1020,7 +1564,7 @@ function init() {
               
                         historyHtml += `
                             <li class="flex justify-between ${repeatHighlight} px-3 py-1.5 rounded">
-                                <span>เคยคู่กับ <strong class="text-slate-200">${partner.name}</strong> (${partner.level})</span>
+                                <span>เคยคู่กับ <strong class="text-slate-200">${partner.name}</strong> (${partner.gender})</span>
                                  <span class="text-amber-400 font-bold">${count} รอบ</span>
                             </li>`;
                     }
@@ -1054,7 +1598,100 @@ function init() {
             }
         }
 
+	function matchmakeFriendzone() {
+    // อัปเดตคูลดาวน์และพยายามเติมคอร์ดที่ว่างอยู่ (ถ้ามี)
+    tickCooldowns();
+    autoFillEmptyCourts();
+
+    // 1. หาคนที่ว่างอยู่นอกสนาม
+    let busyPlayerIds = [];
+    courts.forEach(c => {
+        [...c.teamA, ...c.teamB].forEach(p => { if (p) busyPlayerIds.push(p.id); });
+    });
+    
+    // 🍒 กรองเฉพาะผู้เล่นที่มีสัญลักษณ์ 🍒 ในชื่อ และสถานะพร้อมเล่น
+   let available = players.filter(p => p.status === 'ready' && !busyPlayerIds.includes(p.id) && (!p.cooldown || p.cooldown === 0) && p.name.includes('🏋'));
+
+    // ถ้าสมาชิกกลุ่ม 🍒 ไม่ครบ 4 คน ให้แสดง Modal แจ้งเตือนตามที่กำหนด
+    if (available.length < 4) {
+        showNotification('แจ้งเตือน', 'สมาชิกมีไม่ครบบบบค่า นั่งรอไปก่อนน้า', 'fa-users', 'pink');
+        return;
+    }
+
+    // สลับลำดับคนแบบสุ่ม
+    shuffleArray(available);
+
+    // 2. เริ่มอัลกอริทึมจัดคิว
+    const weightRepeat = 100000;
+    const weightTotalGames = 5000;   
+    const weightGamesRange = 2000;   
+    const weightBalance = 100;
+    
+    while (available.length >= 4) {
+        const combos = combinations(available, 4);
+        let bestChoice = null;
+        let bestScore = Infinity;
+
+        combos.forEach(group => {
+            const sumGames = group.reduce((sum, p) => sum + p.gamesPlayed, 0);
+            const games = group.map(p => p.gamesPlayed);
+            const gamesRange = Math.max(...games) - Math.min(...games); 
+
+             const pairings = [
+                { A: [group[0], group[1]], B: [group[2], group[3]] },
+                { A: [group[0], group[2]], B: [group[1], group[3]] },
+                { A: [group[0], group[3]], B: [group[1], group[2]] }
+            ];
+
+            pairings.forEach(setup => {
+                const repeatA = setup.A[0].history[setup.A[1].id] || 0;
+                 const repeatB = setup.B[0].history[setup.B[1].id] || 0;
+                const totalRepeat = repeatA + repeatB;
+
+                const genA = getGenderValue(setup.A[0]) + getGenderValue(setup.A[1]);
+                const genB = getGenderValue(setup.B[0]) + getGenderValue(setup.B[1]);
+                const balanceDiff = Math.abs(genA - genB);
+
+                const score = (totalRepeat * weightRepeat) + 
+                              (sumGames * weightTotalGames) + 
+                              (gamesRange * weightGamesRange) + 
+                              (balanceDiff * weightBalance) + 
+                              Math.random();
+                if (score < bestScore) {
+                    bestScore = score;
+                    bestChoice = { group, setup, score };
+                }
+            });
+        });
+
+        if (!bestChoice) break;
+
+        // เปลี่ยนสถานะผู้เล่นเป็น 'queued'
+        bestChoice.setup.A.forEach(p => { let pp = players.find(x => x.id === p.id); if (pp) { pp.status = 'queued'; } });
+        bestChoice.setup.B.forEach(p => { let pp = players.find(x => x.id === p.id); if (pp) { pp.status = 'queued'; } });
+        
+        // เพิ่มคิวใหม่เข้าไปในระบบ
+        queues.push({
+            id: Date.now() + Math.random(),
+            teamA: [bestChoice.setup.A[0].id, bestChoice.setup.A[1].id],
+            teamB: [bestChoice.setup.B[0].id, bestChoice.setup.B[1].id],
+            isInterrupted: false
+         });
+
+        const usedIds = new Set(bestChoice.group.map(p => p.id));
+        available = available.filter(p => !usedIds.has(p.id));
+    }
+
+    renderPlayerInputs();
+    renderQueue();
+    autoFillEmptyCourts();
+
+	updateRestRoundsAndCheck(); // 👈
+}
+
         window.onload = init;
+
+
     </script>
 </body>
 </html>
