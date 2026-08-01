@@ -23,7 +23,7 @@
         <header class="flex justify-between items-center bg-slate-800 p-4 rounded-xl mb-6 shadow-md border border-slate-700">
             <div>
                 <h1 class="text-2xl font-bold text-emerald-400">🏸 Badminton Queue & Matchmaker</h1>
-                <p class="text-xs text-slate-400">ระบบจัดคิวตีก๊วนแบดมินตัน (ป้องกันกลุ่มเดิมซ้ำติดกัน)</p>
+                <p class="text-xs text-slate-400">ระบบจัดคิวตีก๊วนแบดมินตัน (ปรับแต่งเงื่อนไขพิเศษสำหรับมาย)</p>
             </div>
             <button onclick="resetAllData()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-semibold transition cursor-pointer">
                 <i class="fa-solid fa-trash-can mr-2"></i>ล้างข้อมูลทั้งหมด
@@ -272,17 +272,17 @@
                 c.emergency = false;
             });
             
-		const initialPlayers = [
-                { name: 'พี่มิว', gender: 'W' }, { name: 'พี่อาท', gender: 'M' },
-                { name: 'พี่มิกซ์', gender: 'M' }, { name: 'พี่เมย์', gender: 'W' },
-                { name: 'น้าดำ', gender: 'M' }, { name: 'อาออฟ', gender: 'M' },
-                { name: 'อาโย', gender: 'M' }, { name: 'มาย', gender: 'M' },
-                { name: 'นิ้ง', gender: 'W' }, { name: 'ตั้ม', gender: 'M' },
-                { name: 'น้ำแข็ง', gender: 'W' }, { name: 'เก่ง', gender: 'M' },
-                { name: 'มัดหมี่', gender: 'W' }, { name: 'พี่นะ', gender: 'M' },
-                { name: 'พี่โต้ง', gender: 'M' }, { name: 'พี่แบม', gender: 'M' },
-                { name: 'พี่บอม', gender: 'M' }, { name: 'พี่เดียร์', gender: 'M' }
-            ];
+            const initialPlayers = [
+                { name: 'พี่มิว', gender: 'W' }, { name: 'พี่อาท', gender: 'M' },
+                { name: 'พี่มิกซ์', gender: 'M' }, { name: 'พี่เมย์', gender: 'W' },
+                { name: 'น้าดำ', gender: 'M' }, { name: 'อาออฟ', gender: 'M' },
+                { name: 'อาโย', gender: 'M' }, { name: 'มาย', gender: 'M' },
+                { name: 'นิ้ง', gender: 'W' }, { name: 'ตั้ม', gender: 'M' },
+                { name: 'น้ำแข็ง', gender: 'W' }, { name: 'เก่ง', gender: 'M' },
+                { name: 'มัดหมี่', gender: 'W' }, { name: 'พี่นะ', gender: 'M' },
+                { name: 'พี่โต้ง', gender: 'M' }, { name: 'บูม', gender: 'M' },
+                { name: 'พี่โอ', gender: 'M' }, { name: 'พี่เดียร์', gender: 'M' }
+            ];
             
             players = initialPlayers.map((p, idx) => ({
                 id: idx + 1,
@@ -295,7 +295,8 @@
                 cooldown: 0,
                 restRounds: 0,
                 lastPlayedWithWoman: false,
-                playedWithOtherWomanLastGame: false 
+                playedWithOtherWomanLastGame: false,
+                mayPlayedWithWomanLastGame: false // [เพิ่มตัวแปรเช็คประวัติการเจอผู้หญิงของมาย]
             }));
 
             renderAll();
@@ -383,7 +384,8 @@
                 cooldown: 0,
                 restRounds: 0,
                 lastPlayedWithWoman: false,
-                playedWithOtherWomanLastGame: false 
+                playedWithOtherWomanLastGame: false,
+                mayPlayedWithWomanLastGame: false 
             });
             
             nameInput.value = '';
@@ -578,14 +580,12 @@
 
                 // 1. ตรวจสอบการซ้ำกันกับกลุ่มก่อนหน้า
                 if (pastGroups.length > 0) {
-                    // ห้ามผู้เล่น 4 คนเดิมเป๊ะๆ ซ้ำติดกันในรอบล่าสุดเด็ดขาด!
                     let lastGroup = pastGroups[pastGroups.length - 1];
                     let lastGroupSorted = [...lastGroup].sort((a,b) => a-b);
                     if (groupIds.length === 4 && lastGroupSorted.length === 4 && groupIds.every((val, index) => val === lastGroupSorted[index])) {
-                        return; // ตัดทิ้งทันทีหากเป็นกลุ่ม 4 คนเดิมซ้ำรอบถัดไป
+                        return; 
                     }
 
-                    // ป้องกันการซ้ำกลุ่มเดิมเกินกำหนด (Overlap)
                     if (strictOverlap) {
                         let maxOverlap = 0;
                         pastGroups.slice(-3).forEach(pastGroup => {
@@ -593,14 +593,12 @@
                             if (overlapCount > maxOverlap) maxOverlap = overlapCount;
                         });
 
-                        // ถ้าเป็นกลุ่มหญิงล้วน 4 คน ห้ามซ้ำเกิน 2 คนกับ 3 เกมล่าสุดเด็ดขาด
                         if (womenCount === 4 && maxOverlap > 2) return;
                         if (maxOverlap > 2) return;
                     }
                 }
 
-                // 2. คำนวณการละเมิดกฎกระจายผู้หญิง 
-                // [อัปเดตใหม่: ป้องกันผู้หญิงที่เพิ่งเจอผู้หญิงเกมที่แล้ว ไม่ให้เจอผู้หญิงซ้ำ]
+                // 2. คำนวณการละเมิดกฎทั่วไป และกฎเฉพาะของ "มาย"
                 let femaleRuleViolations = 0;
                 if (womenCount > 1) { 
                     group.forEach(p => {
@@ -608,6 +606,13 @@
                             femaleRuleViolations += 1000; 
                         }
                     });
+                }
+
+                // [เพิ่มเงื่อนไขเฉพาะสำหรับผู้เล่นที่ชื่อ "มาย"]: 
+                // ห้ามมายเจอผู้หญิงติดกันมากกว่า 1 ครั้งเด็ดขาด (ถ้าเกมที่แล้วมายเล่นร่วมกับผู้หญิง เกมนี้ห้ามมีผู้หญิงในคอร์ดของมายอีก)
+                let mayPlayer = group.find(p => p.name.includes('มาย') && p.gender === 'M');
+                if (mayPlayer && mayPlayer.mayPlayedWithWomanLastGame && womenCount > 0) {
+                    femaleRuleViolations += 5000; // ลงโทษสูงมากเพื่อให้มายเจอชายล้วนหรือไม่มีผู้หญิงในตาถัดไปทันที
                 }
 
                 // 3. คำนวณสถิติของกลุ่มเพื่อใช้จัดลำดับ
@@ -1119,17 +1124,21 @@
             let [a1, a2] = court.teamA;
             let [b1, b2] = court.teamB;
             let playingIds = playing.map(p => p.id);
-            let womenCountInMatch = playing.filter(p => p.gender === 'W').length; // [อัปเดตใหม่: นับจำนวนผู้หญิงในแมตช์]
+            let womenCountInMatch = playing.filter(p => p.gender === 'W').length; 
 
             playing.forEach(p => {
                 p.gamesPlayed += 1;
                 p.lastGamePlayerIds = [...playingIds];
                 
-                // [อัปเดตใหม่: บันทึกว่าเกมนี้ได้เล่นกับผู้หญิง "คนอื่น" ด้วยหรือไม่]
                 if (p.gender === 'W') {
                     p.playedWithOtherWomanLastGame = womenCountInMatch > 1; 
                 } else {
                     p.playedWithOtherWomanLastGame = womenCountInMatch > 0; 
+                }
+
+                // [บันทึกประวัติเฉพาะของมาย: ถ้าผู้เล่นคนนี้คือมายและเกมนี้มีผู้หญิงอยู่ในคอร์ด]
+                if (p.name.includes('มาย') && p.gender === 'M') {
+                    p.mayPlayedWithWomanLastGame = womenCountInMatch > 0;
                 }
             });
 
